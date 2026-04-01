@@ -6,7 +6,7 @@ $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
 
 // PASTE YOUR GEMINI API KEY HERE
-$apiKey = "YOUR_GEMINI_API_KEY_HERE"; 
+$apiKey = "AIzaSyB4PjwK9UgyoKcXFwWh_7i_kHlmKXJUuLE; 
 
 if ((empty($notes) && empty($imageBase64))) {
     echo "Omo, I need data (text or image) to work!";
