@@ -3,28 +3,36 @@ $notes = $_POST['notes'] ?? '';
 $question = $_POST['question'] ?? '';
 $imageBase64 = $_POST['image'] ?? null;
 $imageMime = $_POST['mime'] ?? null;
+$actionType = $_POST['actionType'] ?? 'chat';
 
-// PUT YOUR REAL KEY HERE, NOT THE PLACEHOLDER
-$apiKey = "YOUR_GEMINI_API_KEY_HERE";
+// PASTE YOUR GEMINI API KEY HERE
+$apiKey = "YOUR_GEMINI_API_KEY_HERE"; 
 
-if ((empty($notes) && empty($imageBase64)) || empty($question)) {
-    echo "Omo, I need data (text or image) and a question to work!";
+if ((empty($notes) && empty($imageBase64))) {
+    echo "Omo, I need data (text or image) to work!";
     exit;
 }
 
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+$apiUrl = "[https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=)" . $apiKey;
 
-$systemInstruction = "You are NeuralDesk AI. 
-Tone: Peer-like, highly intelligent, casual Nigerian-English. 
-Goal: Answer the user's question based strictly on the provided text notes and/or the uploaded image. If analyzing an image, describe relevant details accurately.
-Current Notes Context: " . $notes;
+// THE SMART PROMPT SWITCHER
+if ($actionType === 'mindmap') {
+    $systemInstruction = "You are an expert data visualizer. Your ONLY job is to analyze the provided notes/image and output a complex, highly detailed 'Mermaid.js' flowchart or mindmap that perfectly summarizes the core concepts. 
+    Rules:
+    1. Start the chart with 'graph TD' or 'mindmap'.
+    2. Do NOT use parentheses () or brackets [] inside the node text names as it breaks mermaid syntax.
+    3. You MUST wrap the entire code strictly inside standard markdown ```mermaid [code here] ``` blocks.
+    4. Do not output any conversational text or greetings, just the code block.";
+    
+    $question = "Generate the Mermaid visual.";
+} else {
+    $systemInstruction = "You are NeuralDesk AI. Tone: Peer-like, highly intelligent, casual Nigerian-English. Goal: Answer the user's question based strictly on the provided text notes and/or the uploaded image. Current Notes Context: " . $notes;
+}
 
-// Build the API payload parts
 $parts = [
-    ["text" => $systemInstruction . "\n\nUser Question: " . $question]
+    ["text" => $systemInstruction . "\n\nUser Prompt: " . $question]
 ];
 
-// If the user attached an image, inject it into the Gemini payload
 if ($imageBase64 && $imageMime) {
     $parts[] = [
         "inlineData" => [
@@ -35,12 +43,7 @@ if ($imageBase64 && $imageMime) {
 }
 
 $data = [
-    "contents" => [
-        [
-            "role" => "user",
-            "parts" => $parts
-        ]
-    ]
+    "contents" => [["role" => "user", "parts" => $parts]]
 ];
 
 $options = [
@@ -56,13 +59,11 @@ $context  = stream_context_create($options);
 $response = @file_get_contents($apiUrl, false, $context);
 
 if ($response === FALSE) {
-    echo "Network blockage. InfinityFree killed the connection to Google's API again.";
+    echo "Network blockage.";
 } else {
     $result = json_decode($response, true);
-    
-    // Check for API Key errors specifically
     if (isset($result['error'])) {
-        echo "API ERROR: " . $result['error']['message'] . " (Did you paste your real API key?)";
+        echo "API ERROR: " . $result['error']['message'];
     } else {
         echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "Omo, I hit a snag while processing that.";
     }
