@@ -32,11 +32,24 @@
 
     <aside class="w-64 border-r border-slate-200 dark:border-white/5 bg-white dark:bg-[#0c0c10] flex flex-col justify-between hidden md:flex transition-colors duration-300">
         <div>
-            <div class="h-20 flex items-center px-6 border-b border-slate-200 dark:border-white/5">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">N</div>
-                    <span class="font-extrabold tracking-tight text-xl text-slate-900 dark:text-white">NEXUS</span>
-                </div>
+            <div class="flex items-center gap-3">
+    <svg width="36" height="36" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="shadow-lg shadow-indigo-500/20 rounded-xl">
+        <rect width="32" height="32" rx="10" fill="url(#nexus_grad)"/>
+        <circle cx="16" cy="16" r="6" stroke="white" stroke-width="2"/>
+        <circle cx="9" cy="9" r="2.5" fill="white"/>
+        <circle cx="23" cy="9" r="2.5" fill="white"/>
+        <circle cx="9" cy="23" r="2.5" fill="white"/>
+        <circle cx="23" cy="23" r="2.5" fill="white"/>
+        <path d="M10.5 10.5L14.5 14.5M21.5 10.5L17.5 14.5M10.5 21.5L14.5 17.5M21.5 21.5L17.5 17.5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <defs>
+            <linearGradient id="nexus_grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#4F46E5"/>
+                <stop offset="1" stop-color="#9333EA"/>
+            </linearGradient>
+        </defs>
+    </svg>
+    <span class="font-extrabold tracking-tight text-xl text-slate-900 dark:text-white">NEXUS</span>
+</div>
             </div>
             
             <div class="p-4 space-y-2 mt-4">
