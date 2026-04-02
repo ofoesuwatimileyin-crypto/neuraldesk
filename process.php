@@ -14,7 +14,7 @@ if ((empty($notes) && empty($imageBase64))) {
     exit;
 }
 
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" . $apiKey;
 
 // PERSONA & ACTION ROUTER
 if ($actionType === 'mindmap') {
