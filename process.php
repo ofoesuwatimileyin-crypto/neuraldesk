@@ -6,15 +6,15 @@ $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
 $persona = $_POST['persona'] ?? 'chill';
 
-// PASTE YOUR KEY HERE. KEEP THE QUOTES! -> "API_KEY"
-$apiKey = "YOUR_GEMINI_API_KEY_HERE"; 
+// PASTE YOUR KEY HERE. KEEP THE QUOTES!
+$apiKey = "AIzaSyBkvskPKmdo8PCcMmkiAteBIkDT8T4dRHM"; 
 
 if ((empty($notes) && empty($imageBase64))) {
-    echo "Omo, I need data (text or image) to work!";
+    echo "Please provide data (text or image) to work with.";
     exit;
 }
 
-$apiUrl = "[https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=)" . $apiKey;
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
 // PERSONA & ACTION ROUTER
 if ($actionType === 'mindmap') {
@@ -51,20 +51,26 @@ $data = [
     "contents" => [["role" => "user", "parts" => $parts]]
 ];
 
-$options = [
-    'http' => [
-        'header'  => "Content-type: application/json\r\n",
-        'method'  => 'POST',
-        'content' => json_encode($data),
-        'ignore_errors' => true
-    ]
-];
+$json_data = json_encode($data);
 
-$context  = stream_context_create($options);
-$response = @file_get_contents($apiUrl, false, $context);
+// ==========================================
+// NEW: cURL ENGINE (Bypasses network blocks)
+// ==========================================
+$ch = curl_init($apiUrl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    'Content-Type: application/json',
+    'Content-Length: ' . strlen($json_data)
+]);
+// This stops SSL verification errors on strict/free servers
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
 
-if ($response === FALSE) {
-    echo "Network blockage detected on server.";
+$response = curl_exec($ch);
+
+if (curl_errno($ch)) {
+    echo "Server Connection Error: " . curl_error($ch);
 } else {
     $result = json_decode($response, true);
     if (isset($result['error'])) {
@@ -73,4 +79,6 @@ if ($response === FALSE) {
         echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "I hit a snag while processing that.";
     }
 }
+
+curl_close($ch);
 ?>
