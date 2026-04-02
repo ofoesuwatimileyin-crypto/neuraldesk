@@ -4,9 +4,10 @@ $question = $_POST['question'] ?? '';
 $imageBase64 = $_POST['image'] ?? null;
 $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
+$persona = $_POST['persona'] ?? 'chill';
 
-// PASTE YOUR GEMINI API KEY HERE
-$apiKey = "AIzaSyBkvskPKmdo8PCcMmkiAteBIkDT8T4dRHM; 
+// PASTE YOUR KEY HERE. KEEP THE QUOTES! -> "API_KEY"
+$apiKey = "YOUR_GEMINI_API_KEY_HERE"; 
 
 if ((empty($notes) && empty($imageBase64))) {
     echo "Omo, I need data (text or image) to work!";
@@ -15,18 +16,22 @@ if ((empty($notes) && empty($imageBase64))) {
 
 $apiUrl = "[https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=](https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=)" . $apiKey;
 
-// THE SMART PROMPT SWITCHER
+// PERSONA & ACTION ROUTER
 if ($actionType === 'mindmap') {
-    $systemInstruction = "You are an expert data visualizer. Your ONLY job is to analyze the provided notes/image and output a complex, highly detailed 'Mermaid.js' flowchart or mindmap that perfectly summarizes the core concepts. 
+    $systemInstruction = "You are an expert data visualizer. Analyze the provided notes/image and output a complex, highly detailed 'Mermaid.js' flowchart or mindmap summarizing the core concepts. 
     Rules:
     1. Start the chart with 'graph TD' or 'mindmap'.
-    2. Do NOT use parentheses () or brackets [] inside the node text names as it breaks mermaid syntax.
-    3. You MUST wrap the entire code strictly inside standard markdown ```mermaid [code here] ``` blocks.
-    4. Do not output any conversational text or greetings, just the code block.";
-    
+    2. NO parentheses () or brackets [] inside node names.
+    3. Wrap the code strictly inside standard markdown ```mermaid [code here] ``` blocks.
+    4. Do not output any conversational text, only the code block.";
     $question = "Generate the Mermaid visual.";
 } else {
-    $systemInstruction = "You are NeuralDesk AI. Tone: Peer-like, highly intelligent, casual Nigerian-English. Goal: Answer the user's question based strictly on the provided text notes and/or the uploaded image. Current Notes Context: " . $notes;
+    if ($persona === 'strict') {
+        $systemInstruction = "You are a highly intelligent but extremely strict Nigerian University Lecturer. Tone: Harsh, demanding excellence, using Nigerian slang (e.g., 'Omo', 'Are you playing?', 'Will you be serious?'). Goal: Answer the user's question based strictly on the provided text notes or image. If their question is lazy, roast them briefly before answering.";
+    } else {
+        $systemInstruction = "You are Nexus Tutor, an authentic, supportive, and brilliant AI peer. Tone: Friendly, encouraging, highly intelligent. Goal: Answer the user's question clearly based strictly on the provided text notes or image. Break down complex topics so they are easy to understand.";
+    }
+    $systemInstruction .= " Current Context: " . $notes;
 }
 
 $parts = [
@@ -59,13 +64,13 @@ $context  = stream_context_create($options);
 $response = @file_get_contents($apiUrl, false, $context);
 
 if ($response === FALSE) {
-    echo "Network blockage.";
+    echo "Network blockage detected on server.";
 } else {
     $result = json_decode($response, true);
     if (isset($result['error'])) {
         echo "API ERROR: " . $result['error']['message'];
     } else {
-        echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "Omo, I hit a snag while processing that.";
+        echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "I hit a snag while processing that.";
     }
 }
 ?>
