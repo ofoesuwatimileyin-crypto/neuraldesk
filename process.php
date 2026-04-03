@@ -1,5 +1,5 @@
 <?php
-// NEXUS CORE ENGINE V3.5
+// NEXUS CORE ENGINE V3.6 - THE PRO UPGRADE
 $notes = $_POST['notes'] ?? '';
 $question = $_POST['question'] ?? '';
 $imageBase64 = $_POST['image'] ?? null;
@@ -7,16 +7,16 @@ $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
 $persona = $_POST['persona'] ?? 'chill';
 
-// This pulls the key from the Render Vault you just set up
-$apiKey = getenv('GEMINI_API_KEY'); 
+// Pull the key and TRIM any accidental invisible spaces
+$apiKey = trim(getenv('GEMINI_API_KEY')); 
 
-if (!$apiKey) {
+if (empty($apiKey)) {
     echo "System Error: Nexus cannot find your API key in Render settings.";
     exit;
 }
 
-// THE STABLE URL
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" . $apiKey;
+// UPGRADED TO THE PRO MODEL (Most stable endpoint)
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" . $apiKey;
 
 if ($actionType === 'mindmap') {
     $systemInstruction = "You are a visualizer. Output ONLY a Mermaid.js 'graph TD' block. Wrap in ```mermaid blocks.";
@@ -40,16 +40,22 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+// Force connection through strict servers
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
 $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 if ($httpCode !== 200) {
-    echo "API Error ($httpCode). Make sure your key in Render is fresh!";
+    echo "Google API Error (Code $httpCode): The connection failed. Google might be blocking this specific region.";
 } else {
     $result = json_decode($response, true);
-    echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "Omo, I hit a snag.";
+    if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
+        echo $result['candidates'][0]['content']['parts'][0]['text'];
+    } else {
+        echo "Omo, the brain returned an empty response. Try a different question.";
+    }
 }
 curl_close($ch);
 ?>
