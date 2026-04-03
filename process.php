@@ -1,5 +1,5 @@
 <?php
-// NEXUS CORE ENGINE V3.6 - THE PRO UPGRADE
+// NEXUS CORE ENGINE V3.7 - THE BLINDFOLD OFF
 $notes = $_POST['notes'] ?? '';
 $question = $_POST['question'] ?? '';
 $imageBase64 = $_POST['image'] ?? null;
@@ -7,7 +7,7 @@ $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
 $persona = $_POST['persona'] ?? 'chill';
 
-// Pull the key and TRIM any accidental invisible spaces
+// Pull the key securely
 $apiKey = trim(getenv('GEMINI_API_KEY')); 
 
 if (empty($apiKey)) {
@@ -15,8 +15,8 @@ if (empty($apiKey)) {
     exit;
 }
 
-// UPGRADED TO THE PRO MODEL (Most stable endpoint)
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=" . $apiKey;
+// Targeting the absolute latest flash model
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" . $apiKey;
 
 if ($actionType === 'mindmap') {
     $systemInstruction = "You are a visualizer. Output ONLY a Mermaid.js 'graph TD' block. Wrap in ```mermaid blocks.";
@@ -40,7 +40,6 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-// Force connection through strict servers
 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
@@ -48,7 +47,10 @@ $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 if ($httpCode !== 200) {
-    echo "Google API Error (Code $httpCode): The connection failed. Google might be blocking this specific region.";
+    // THIS IS THE FIX: Print Google's EXACT error message so we aren't guessing.
+    $errorData = json_decode($response, true);
+    $actualError = $errorData['error']['message'] ?? "Raw response: " . htmlspecialchars($response);
+    echo "Google API Error (Code $httpCode): " . $actualError;
 } else {
     $result = json_decode($response, true);
     if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
