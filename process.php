@@ -8,7 +8,7 @@ $actionType = $_POST['actionType'] ?? 'chat';
 $persona = $_POST['persona'] ?? 'chill';
 
 // PASTE YOUR KEY HERE
-$apiKey = "AIzaSyAft_w6Hv9DdhW6RKw26GDPUoIH1jbE44o"; 
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
 if (empty($notes) && empty($imageBase64)) {
     echo "Omo, I need some notes or an image to work with!";
