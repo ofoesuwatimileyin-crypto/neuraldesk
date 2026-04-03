@@ -1,5 +1,5 @@
 <?php
-// NEXUS CORE ENGINE V3.2 - STABLE
+// NEXUS CORE ENGINE V3.5 - THE BULLETPROOF VERSION
 $notes = $_POST['notes'] ?? '';
 $question = $_POST['question'] ?? '';
 $imageBase64 = $_POST['image'] ?? null;
@@ -7,23 +7,28 @@ $imageMime = $_POST['mime'] ?? null;
 $actionType = $_POST['actionType'] ?? 'chat';
 $persona = $_POST['persona'] ?? 'chill';
 
-// PASTE YOUR KEY HERE
-$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+// Pull the key from Render's secret vault
+$apiKey = getenv('GEMINI_API_KEY'); 
 
-if (empty($notes) && empty($imageBase64)) {
-    echo "Omo, I need some notes or an image to work with!";
+if (!$apiKey) {
+    echo "System Error: Nexus cannot find your API key in Render Environment settings.";
     exit;
 }
 
-// CHANGED TO v1 STABLE ENDPOINT
-$apiUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
+if (empty($notes) && empty($imageBase64)) {
+    echo "Context Error: Please provide notes or an image first.";
+    exit;
+}
+
+$apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" . $apiKey;
 
 if ($actionType === 'mindmap') {
-    $systemInstruction = "You are a data visualizer. Output ONLY a Mermaid.js 'graph TD' or 'mindmap' block. No text, no talking. Wrap code in ```mermaid blocks.";
-    $question = "Summarize these notes into a visual mindmap.";
+    $systemInstruction = "You are a visualizer. Output ONLY a Mermaid.js 'graph TD' block. No talk. Wrap in ```mermaid blocks.";
+    $question = "Create a mindmap.";
 } else {
-    $role = ($persona === 'strict') ? "Strict Nigerian University Lecturer. Use slang like 'Omo', 'Are you playing?', 'Will you be serious?' and roast the student if they ask lazy questions." : "Supportive and brilliant AI study peer.";
-    $systemInstruction = "You are Nexus AI, acting as a $role. Answer based ONLY on these notes: " . $notes;
+    $lecturer = "You are a strict Nigerian University Lecturer. Tone: Harsh, using slang like 'Omo', 'Are you playing?', 'Will you be serious?'. Answer based ONLY on these notes: " . $notes;
+    $tutor = "You are Nexus AI, a supportive study peer. Answer clearly based on these notes: " . $notes;
+    $systemInstruction = ($persona === 'strict') ? $lecturer : $tutor;
 }
 
 $parts = [["text" => $systemInstruction . "\n\nUser: " . $question]];
@@ -50,9 +55,9 @@ if (curl_errno($ch)) {
 } else {
     $result = json_decode($response, true);
     if ($httpCode !== 200) {
-        echo "Google API Error (Code $httpCode): " . ($result['error']['message'] ?? 'Unknown Error');
+        echo "Google API Error (Code $httpCode): " . ($result['error']['message'] ?? 'Check your API Key in Render');
     } else {
-        echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "Omo, the brain is empty. Try again.";
+        echo $result['candidates'][0]['content']['parts'][0]['text'] ?? "The brain is empty. Try again.";
     }
 }
 curl_close($ch);
